@@ -26,6 +26,7 @@ The toolkit provides 40 public API symbols organized into 9 layers:
 | [`selection`](selection.md) | `TournamentSelection`, `TruncationSelection`, `EpsilonGreedy` | How do we choose individuals from a population? |
 | [`population`](population.md) | `PopulationManager`, `random_population`, `elitism`, `diversity_metric`, `behavioral_diversity` | How do we manage and analyze populations? |
 | [`landscape`](landscape.md) | `probe_cliffiness`, `roughness_ratio`, `sign_flip_rate`, `gradient_estimate`, `LandscapeAnalyzer` | What does the fitness landscape look like? |
+| [`atlas`](atlas.md) | `AtlasBuilder` | Multi-phase landscape atlas (probe, slice, profile) |
 | [`telemetry`](telemetry.md) | `Telemetry`, `load_telemetry` | How do we log optimization progress? |
 | [`benchmarks`](benchmarks.md) | `SphereFitness`, `RosenbrockFitness`, `RastriginFitness`, `AckleyFitness`, `ZDT1Fitness` | Standard test functions for algorithm comparison |
 | [`callbacks`](callbacks.md) | `ConvergenceChecker`, `ProgressPrinter`, `TelemetryCallback`, `HistoryRecorder` | How do we monitor and control algorithm runs? |
@@ -117,6 +118,7 @@ All randomness flows through `np.random.Generator` instances seeded at construct
 - **[`selection`](selection.md)** — TournamentSelection, TruncationSelection, EpsilonGreedy
 - **[`population`](population.md)** — PopulationManager, random_population, elitism, diversity metrics
 - **[`landscape`](landscape.md)** — Cliffiness probing, roughness ratio, gradient estimation, LandscapeAnalyzer
+- **[`atlas`](atlas.md)** — Multi-phase landscape atlas builder (random probing → 2D slices → cliff anatomy)
 - **[`telemetry`](telemetry.md)** — JSON-lines logging and loading
 - **[`benchmarks`](benchmarks.md)** — Sphere, Rosenbrock, Rastrigin, Ackley, ZDT1
 - **[`callbacks`](callbacks.md)** — ConvergenceChecker, ProgressPrinter, TelemetryCallback, HistoryRecorder
