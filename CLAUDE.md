@@ -11,8 +11,11 @@ All numerical operations use **numpy only** (no scipy, no sklearn).
 ## Commands
 
 ```bash
-# Run the full test suite (98 tests)
+# Run the full test suite (113 tests, 5 zimmerman tests skip without PYTHONPATH)
 pytest tests/ -v
+
+# Run with Zimmerman integration tests
+PYTHONPATH=../zimmerman-toolkit pytest tests/ -v
 
 # Run original algorithm tests only
 pytest tests/test_algorithms.py -v
@@ -55,6 +58,7 @@ algorithms/
     ensemble.py         ← EnsembleExplorer (imports base, mutation)
     de.py               ← DifferentialEvolution (imports base only, native ask-tell)
     cma_es.py           ← CMAES (imports base only, native ask-tell)
+zimmerman_bridge.py     ← Bidirectional adapters for zimmerman-toolkit (lazy import)
 ```
 
 ### Protocol-Based Design

@@ -93,6 +93,12 @@ from ea_toolkit.callbacks import (
     HistoryRecorder,
 )
 
+# Zimmerman bridge (adapters always available; convenience fns need zimmerman)
+from ea_toolkit.zimmerman_bridge import (
+    FitnessAsSimulator,
+    SimulatorAsFitness,
+)
+
 __all__ = [
     # Base
     'FitnessFunction', 'MutationOperator', 'CrossoverOperator',
@@ -121,4 +127,6 @@ __all__ = [
     # Callbacks
     'ConvergenceChecker', 'ProgressPrinter', 'TelemetryCallback',
     'HistoryRecorder',
+    # Zimmerman bridge
+    'FitnessAsSimulator', 'SimulatorAsFitness',
 ]

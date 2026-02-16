@@ -35,6 +35,8 @@ Standalone evolutionary algorithms library for black-box optimization. Numpy-onl
 
 **Telemetry** — JSON-lines logging with numpy serialization
 
+**Zimmerman Bridge** — Bidirectional adapters connecting to the [Zimmerman toolkit](https://github.com/KathrynC/zimmerman-toolkit) for Sobol sensitivity, falsification, contrastive analysis, and POSIWID auditing
+
 ## Quick Start
 
 ```python
@@ -75,25 +77,31 @@ print(f"Best: {best['fitness']:.4f} at {best['params']}")
 ## Tests
 
 ```bash
-pytest tests/ -v   # 98 tests, ~0.6s
+pytest tests/ -v   # 113 tests, ~0.6s
+
+# With Zimmerman integration tests (5 additional)
+PYTHONPATH=../zimmerman-toolkit pytest tests/ -v
 ```
 
 ## Origin
 
-Extracted from two research projects by Kathryn Cramer:
+Inspired by Josh Bongard's [Ludobots](https://www.reddit.com/r/ludobots/) evolutionary robotics course (University of Vermont, 2014) and extracted from two research projects by Kathryn Cramer:
 
-- **[Evolutionary-Robotics](https://github.com/KathrynC/Evolutionary-Robotics)** — PyBullet 3-link robot locomotion optimization (116 gaits, ~25k simulations). The hill climber, ridge walker, cliff mapper, novelty seeker, and ensemble explorer all originated in `walker_competition.py`. Landscape analysis came from `atlas_cliffiness.py`.
+- **[Evolutionary-Robotics](https://github.com/KathrynC/Evolutionary-Robotics)** — PyBullet 3-link robot locomotion optimization (116 gaits, ~25k simulations), created in the context of Bongard's Ludobots framework. The hill climber, ridge walker, cliff mapper, novelty seeker, and ensemble explorer all originated in `walker_competition.py`. Landscape analysis came from `atlas_cliffiness.py`.
 
-- **how-to-live-much-longer** — Mitochondrial aging ODE simulator with LLM-mediated intervention design. The (1+lambda) ES and adaptive mutation came from `temporal_optimizer.py`.
+- **how-to-live-much-longer** — Mitochondrial aging ODE simulator based on John G. Cramer's 2025 book, with LLM-mediated intervention design. The (1+lambda) ES and adaptive mutation came from `temporal_optimizer.py`.
 
 Both projects needed the same core optimization machinery. Rather than duplicate code, the shared algorithms were extracted into this standalone library.
+
+Works alongside the [Zimmerman toolkit](https://github.com/KathrynC/zimmerman-toolkit) for black-box simulator interrogation (Sobol sensitivity, falsification, contrastive analysis). See [`docs/zimmerman_bridge.md`](docs/zimmerman_bridge.md) for the integration API.
 
 ## Documentation
 
 Full Wolfram-style reference documentation in [`docs/`](docs/):
 
 - [`docs/guide.md`](docs/guide.md) — Main reference guide
-- Per-module pages for all [base classes](docs/base.md), [mutation operators](docs/mutation.md), [crossover operators](docs/crossover.md), [selection strategies](docs/selection.md), [population tools](docs/population.md), [landscape analysis](docs/landscape.md), [telemetry](docs/telemetry.md), [benchmarks](docs/benchmarks.md), [callbacks](docs/callbacks.md), and each of the [8 algorithms](docs/guide.md#algorithms)
+- Per-module pages for all [base classes](docs/base.md), [mutation operators](docs/mutation.md), [crossover operators](docs/crossover.md), [selection strategies](docs/selection.md), [population tools](docs/population.md), [landscape analysis](docs/landscape.md), [telemetry](docs/telemetry.md), [benchmarks](docs/benchmarks.md), [callbacks](docs/callbacks.md), [Zimmerman bridge](docs/zimmerman_bridge.md), and each of the [8 algorithms](docs/guide.md#algorithms)
+- [`docs/references.md`](docs/references.md) — Academic citations (Bongard, Storn & Price, Hansen, Deb, Lehman & Stanley, Beer, Zitzler, Zimmerman)
 
 ## License
 
