@@ -76,6 +76,9 @@ from ea_toolkit.landscape import (
     LandscapeAnalyzer,
 )
 
+# Atlas builder
+from ea_toolkit.atlas import AtlasBuilder
+
 # Benchmarks
 from ea_toolkit.benchmarks import (
     SphereFitness,
@@ -121,6 +124,8 @@ __all__ = [
     # Landscape
     'probe_cliffiness', 'roughness_ratio', 'sign_flip_rate',
     'gradient_estimate', 'LandscapeAnalyzer',
+    # Atlas
+    'AtlasBuilder',
     # Benchmarks
     'SphereFitness', 'RosenbrockFitness', 'RastriginFitness',
     'AckleyFitness', 'ZDT1Fitness',

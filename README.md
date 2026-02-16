@@ -31,6 +31,8 @@ Standalone evolutionary algorithms library for black-box optimization. Numpy-onl
 
 **Landscape Analysis** — Cliffiness probing, roughness ratio, gradient estimation, sign flip rate, comprehensive `LandscapeAnalyzer`
 
+**Atlas Builder** — Multi-phase landscape mapping: random probing → 2D slice heatmaps → cliff anatomy profiling, with matplotlib visualization and JSON export for D3/P5 dashboards
+
 **Population Management** — Random generation, elitism, parameter-space and behavioral diversity metrics
 
 **Telemetry** — JSON-lines logging with numpy serialization

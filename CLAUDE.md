@@ -45,6 +45,7 @@ crossover.py            ← 2 crossover operators: SBX, Uniform (imports base)
 selection.py            ← 3 selection strategies (imports base)
 population.py           ← Population management (numpy only)
 landscape.py            ← Landscape analysis tools (imports base)
+atlas.py                ← Multi-phase atlas builder (imports base, landscape)
 telemetry.py            ← JSON-lines logging (stdlib only)
 benchmarks.py           ← 5 test functions: Sphere, Rosenbrock, Rastrigin, Ackley, ZDT1
 callbacks.py            ← 4 callbacks: ConvergenceChecker, ProgressPrinter, TelemetryCallback, HistoryRecorder
