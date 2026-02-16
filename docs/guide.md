@@ -14,18 +14,21 @@ The toolkit is numpy-only (no scipy, no sklearn) and uses a protocol-based desig
 
 ## Overview
 
-The toolkit provides 22 public API symbols organized into 5 layers:
+The toolkit provides 38 public API symbols organized into 8 layers:
 
 | Layer | Components | Question |
 |-------|-----------|----------|
-| [`base`](base.md) | `FitnessFunction`, `MutationOperator`, `SelectionStrategy`, `Algorithm` | What interfaces must components implement? |
+| [`base`](base.md) | `FitnessFunction`, `MutationOperator`, `CrossoverOperator`, `SelectionStrategy`, `Algorithm`, `Callback` | What interfaces must components implement? |
 | [`mutation`](mutation.md) | `GaussianMutation`, `CauchyMutation`, `AdaptiveMutation` | How do we perturb parameter vectors? |
+| [`crossover`](crossover.md) | `SBXCrossover`, `UniformCrossover` | How do we recombine parent parameter vectors? |
 | [`selection`](selection.md) | `TournamentSelection`, `TruncationSelection`, `EpsilonGreedy` | How do we choose individuals from a population? |
 | [`population`](population.md) | `PopulationManager`, `random_population`, `elitism`, `diversity_metric`, `behavioral_diversity` | How do we manage and analyze populations? |
 | [`landscape`](landscape.md) | `probe_cliffiness`, `roughness_ratio`, `sign_flip_rate`, `gradient_estimate`, `LandscapeAnalyzer` | What does the fitness landscape look like? |
 | [`telemetry`](telemetry.md) | `Telemetry`, `load_telemetry` | How do we log optimization progress? |
+| [`benchmarks`](benchmarks.md) | `SphereFitness`, `RosenbrockFitness`, `RastriginFitness`, `AckleyFitness`, `ZDT1Fitness` | Standard test functions for algorithm comparison |
+| [`callbacks`](callbacks.md) | `ConvergenceChecker`, `ProgressPrinter`, `TelemetryCallback`, `HistoryRecorder` | How do we monitor and control algorithm runs? |
 
-Plus 6 algorithms:
+Plus 8 algorithms:
 
 | Algorithm | Strategy | Source |
 |-----------|----------|--------|
@@ -35,6 +38,8 @@ Plus 6 algorithms:
 | [`CliffMapper`](cliff_mapper.md) | High-sensitivity region search | `walker_competition.py` |
 | [`NoveltySeeker`](novelty_seeker.md) | k-NN novelty-driven search | `walker_competition.py` |
 | [`EnsembleExplorer`](ensemble.md) | Multi-walker ensemble with convergence teleportation | `walker_competition.py` |
+| [`DifferentialEvolution`](de.md) | DE/rand/1/bin with population-based vector differences | Standard (Storn & Price 1997) |
+| [`CMAES`](cma_es.md) | Covariance matrix adaptation with step-size control | Standard (Hansen 2001) |
 
 ---
 
@@ -103,12 +108,15 @@ All randomness flows through `np.random.Generator` instances seeded at construct
 
 ### Core Infrastructure
 
-- **[`base`](base.md)** — Abstract base classes: FitnessFunction, MutationOperator, SelectionStrategy, Algorithm
+- **[`base`](base.md)** — Abstract base classes: FitnessFunction, MutationOperator, CrossoverOperator, SelectionStrategy, Algorithm, Callback
 - **[`mutation`](mutation.md)** — GaussianMutation, CauchyMutation, AdaptiveMutation
+- **[`crossover`](crossover.md)** — SBXCrossover, UniformCrossover
 - **[`selection`](selection.md)** — TournamentSelection, TruncationSelection, EpsilonGreedy
 - **[`population`](population.md)** — PopulationManager, random_population, elitism, diversity metrics
 - **[`landscape`](landscape.md)** — Cliffiness probing, roughness ratio, gradient estimation, LandscapeAnalyzer
 - **[`telemetry`](telemetry.md)** — JSON-lines logging and loading
+- **[`benchmarks`](benchmarks.md)** — Sphere, Rosenbrock, Rastrigin, Ackley, ZDT1
+- **[`callbacks`](callbacks.md)** — ConvergenceChecker, ProgressPrinter, TelemetryCallback, HistoryRecorder
 
 ### Algorithms
 
@@ -118,16 +126,22 @@ All randomness flows through `np.random.Generator` instances seeded at construct
 - **[`CliffMapper`](cliff_mapper.md)** — High-sensitivity region search
 - **[`NoveltySeeker`](novelty_seeker.md)** — Novelty-driven exploration
 - **[`EnsembleExplorer`](ensemble.md)** — Multi-walker ensemble with teleportation
+- **[`DifferentialEvolution`](de.md)** — DE/rand/1/bin with ask-tell interface
+- **[`CMAES`](cma_es.md)** — Covariance matrix adaptation evolution strategy
 
 ---
 
 ## Test Suite
 
-47 tests across 2 modules:
+98 tests across 6 modules:
 
 | Module | Tests | Coverage |
 |--------|-------|----------|
-| `test_algorithms.py` | 27 | All 6 algorithms: convergence, budget, history, reproducibility, cross-algorithm |
+| `test_algorithms.py` | 27 | All 6 original algorithms: convergence, budget, history, reproducibility, cross-algorithm |
 | `test_landscape.py` | 20 | Cliffiness, roughness, sign flips, gradient, LandscapeAnalyzer |
+| `test_benchmarks.py` | 14 | All 5 benchmark functions: optima, bounds, properties |
+| `test_crossover.py` | 10 | SBX and Uniform crossover: bounds, reproducibility, edge cases |
+| `test_callbacks.py` | 7 | Callback protocol, convergence checker, history recorder, integration |
+| `test_new_algorithms.py` | 20 | DE and CMA-ES: convergence, ask-tell, budget, cross-algorithm with all 8 |
 
-Test fixtures provide 5 benchmark functions: SphereFitness, RastriginFitness, MultiObjectiveSphere, StepFitness, LinearFitness.
+Test fixtures provide benchmark functions via `conftest.py` (SphereFitness, RastriginFitness, MultiObjectiveSphere, StepFitness, LinearFitness) and via `ea_toolkit.benchmarks` (Sphere, Rosenbrock, Rastrigin, Ackley, ZDT1).

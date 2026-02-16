@@ -6,7 +6,7 @@ Abstract base classes for evolutionary algorithm components.
 
 ## Overview
 
-Defines 4 abstract base classes that form the protocol contracts for all toolkit components. Every algorithm, mutation operator, selection strategy, and fitness function implements one of these interfaces. Extracted and generalized from `walker_competition.py` and `temporal_optimizer.py` in the Evolutionary-Robotics project.
+Defines 6 abstract base classes that form the protocol contracts for all toolkit components. Every algorithm, mutation operator, crossover operator, selection strategy, callback, and fitness function implements one of these interfaces. Extracted and generalized from `walker_competition.py` and `temporal_optimizer.py` in the Evolutionary-Robotics project.
 
 ---
 
@@ -65,6 +65,30 @@ Returns a new dict with mutated values clamped to bounds.
 
 ---
 
+### `CrossoverOperator`
+
+Abstract crossover operator for recombining two parent parameter vectors.
+
+```python
+class CrossoverOperator(ABC):
+    @abstractmethod
+    def crossover(self, parent1: dict, parent2: dict,
+                  param_spec: dict, rng: np.random.Generator) -> tuple[dict, dict]: ...
+```
+
+| Argument | Type | Description |
+|----------|------|-------------|
+| `parent1` | `dict` | First parent parameter values |
+| `parent2` | `dict` | Second parent parameter values |
+| `param_spec` | `dict` | Parameter bounds `{name: (low, high)}` |
+| `rng` | `np.random.Generator` | Random generator for reproducibility |
+
+Returns a tuple of two child parameter dicts.
+
+See [`crossover`](crossover.md) for SBXCrossover and UniformCrossover implementations.
+
+---
+
 ### `SelectionStrategy`
 
 Abstract selection strategy for choosing individuals from a population.
@@ -102,7 +126,10 @@ class Algorithm(ABC):
 |--------|-------------|
 | `run(budget)` | Run algorithm for `budget` fitness evaluations. Returns history. |
 | `best()` | Return the entry with highest fitness, or None. |
-| `_record(params, result)` | Record evaluation in history, update best. |
+| `ask()` | Return candidates to evaluate (for ask-tell interface). Default raises NotImplementedError. |
+| `tell(evaluations)` | Report (params, result) tuples. Default raises NotImplementedError. |
+| `_record(params, result)` | Record evaluation in history, update best. Triggers `on_improvement` callback. |
+| `_notify(event, **kwargs)` | Dispatch callback event. Returns False if any callback requests stop. |
 
 **Constructor arguments:**
 
@@ -113,6 +140,13 @@ class Algorithm(ABC):
 | `selection` | `SelectionStrategy` | `None` | Optional selection strategy |
 | `seed` | `int` | `None` | Random seed for reproducibility |
 
+**Attributes:**
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `history` | `list[dict]` | All evaluation records |
+| `callbacks` | `list[Callback]` | Attached callbacks (default empty) |
+
 **History entry format:**
 
 ```python
@@ -121,6 +155,24 @@ class Algorithm(ABC):
 
 ---
 
+### `Callback`
+
+Base class for algorithm event callbacks. Override any method to receive that event.
+
+```python
+class Callback:
+    def on_start(self, algorithm): ...
+    def on_generation(self, algorithm, generation, best_fitness): ...
+    def on_improvement(self, algorithm, old_fitness, new_fitness): ...
+    def on_finish(self, algorithm): ...
+```
+
+If `on_generation` returns `False`, the algorithm stops (early stopping).
+
+See [`callbacks`](callbacks.md) for ConvergenceChecker, ProgressPrinter, TelemetryCallback, and HistoryRecorder.
+
+---
+
 ## Source
 
-`ea_toolkit/base.py` — 155 lines.
+`ea_toolkit/base.py`

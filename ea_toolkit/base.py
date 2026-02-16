@@ -2,8 +2,8 @@
 ea_toolkit.base -- Abstract base classes for evolutionary algorithm components.
 
 Provides the foundational interfaces that all algorithms, mutation operators,
-selection strategies, and fitness functions must implement. Extracted and
-generalized from walker_competition.py and temporal_optimizer.py.
+selection strategies, crossover operators, and fitness functions must implement.
+Extracted and generalized from walker_competition.py and temporal_optimizer.py.
 """
 
 from abc import ABC, abstractmethod
@@ -67,6 +67,30 @@ class MutationOperator(ABC):
         ...
 
 
+class CrossoverOperator(ABC):
+    """Abstract crossover operator for recombining two parent solutions.
+
+    Subclasses must implement crossover() to produce two offspring
+    from two parents, respecting parameter bounds.
+    """
+
+    @abstractmethod
+    def crossover(self, parent1: dict, parent2: dict, param_spec: dict,
+                  rng: np.random.Generator) -> tuple[dict, dict]:
+        """Produce two offspring from two parents.
+
+        Args:
+            parent1: first parent parameter dict.
+            parent2: second parent parameter dict.
+            param_spec: dict mapping parameter names to (low, high) bounds.
+            rng: numpy random Generator for reproducibility.
+
+        Returns:
+            Tuple of (child1, child2) parameter dicts.
+        """
+        ...
+
+
 class SelectionStrategy(ABC):
     """Abstract selection strategy for choosing individuals from a population."""
 
@@ -84,12 +108,47 @@ class SelectionStrategy(ABC):
         ...
 
 
+class Callback:
+    """Base callback class for hooking into algorithm events.
+
+    Override any method to receive notifications. Return False from
+    on_generation() to request early stopping.
+    """
+
+    def on_start(self, algorithm: 'Algorithm') -> None:
+        """Called when the algorithm starts running."""
+        pass
+
+    def on_generation(self, algorithm: 'Algorithm', generation: int,
+                      best_fitness: float) -> bool | None:
+        """Called after each generation.
+
+        Args:
+            algorithm: the running algorithm instance.
+            generation: current generation number (0-indexed).
+            best_fitness: best fitness found so far.
+
+        Returns:
+            False to request early stopping, or None/True to continue.
+        """
+        pass
+
+    def on_improvement(self, algorithm: 'Algorithm',
+                       old_fitness: float, new_fitness: float) -> None:
+        """Called when a new best fitness is found."""
+        pass
+
+    def on_finish(self, algorithm: 'Algorithm') -> None:
+        """Called when the algorithm finishes."""
+        pass
+
+
 class Algorithm(ABC):
     """Base class for all evolutionary algorithms.
 
     All algorithms share: run(budget) -> history.
     Provides common infrastructure for fitness tracking, history recording,
-    and best-individual retrieval.
+    best-individual retrieval, callbacks, and optional ask-tell interface.
     """
 
     def __init__(self, fitness_fn: FitnessFunction,
@@ -110,6 +169,7 @@ class Algorithm(ABC):
         self.rng = np.random.default_rng(seed)
         self.history: list[dict] = []
         self._best: dict | None = None
+        self.callbacks: list[Callback] = []
 
     @abstractmethod
     def run(self, budget: int) -> list[dict]:
@@ -123,6 +183,30 @@ class Algorithm(ABC):
             plus all keys from the fitness evaluation result.
         """
         ...
+
+    def ask(self) -> list[dict]:
+        """Return the next batch of candidates to evaluate.
+
+        Part of the ask-tell interface. Not all algorithms support this.
+        Algorithms that do will override this method.
+
+        Returns:
+            list of parameter dicts to evaluate.
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not support ask-tell. Use run().")
+
+    def tell(self, evaluations: list[tuple[dict, dict]]) -> None:
+        """Report evaluation results for candidates from ask().
+
+        Part of the ask-tell interface. Not all algorithms support this.
+
+        Args:
+            evaluations: list of (params_dict, result_dict) tuples where
+                each result_dict must contain a 'fitness' key.
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not support ask-tell. Use run().")
 
     def best(self) -> dict | None:
         """Return the best individual found so far.
@@ -146,10 +230,34 @@ class Algorithm(ABC):
         Returns:
             The recorded history entry (params merged with result).
         """
+        old_best_fitness = (self._best.get('fitness', float('-inf'))
+                            if self._best else float('-inf'))
+
         entry = {'params': dict(params), **result}
         self.history.append(entry)
-        if (self._best is None or
-                result.get('fitness', float('-inf')) >
-                self._best.get('fitness', float('-inf'))):
+
+        new_fitness = result.get('fitness', float('-inf'))
+        if new_fitness > old_best_fitness:
             self._best = entry
+            self._notify('on_improvement',
+                         old_fitness=old_best_fitness,
+                         new_fitness=new_fitness)
         return entry
+
+    def _notify(self, event: str, **kwargs) -> bool:
+        """Notify all callbacks of an event.
+
+        Args:
+            event: method name on Callback to call.
+            **kwargs: arguments to pass to the callback method.
+
+        Returns:
+            False if any callback explicitly returns False, True otherwise.
+        """
+        for cb in self.callbacks:
+            method = getattr(cb, event, None)
+            if method:
+                result = method(self, **kwargs)
+                if result is False:
+                    return False
+        return True

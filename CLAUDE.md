@@ -4,21 +4,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Standalone evolutionary algorithms toolkit extracted from the [Evolutionary-Robotics](../pybullet_test/Evolutionary-Robotics/) and [how-to-live-much-longer](../how-to-live-much-longer/) projects. Provides abstract base classes, mutation operators, selection strategies, population management, 6 optimization algorithms, landscape analysis tools, and telemetry logging.
+Standalone evolutionary algorithms toolkit extracted from the [Evolutionary-Robotics](../pybullet_test/Evolutionary-Robotics/) and [how-to-live-much-longer](../how-to-live-much-longer/) projects. Provides abstract base classes, mutation operators, crossover operators, selection strategies, population management, 8 optimization algorithms (including DE and CMA-ES), landscape analysis tools, benchmark functions, a callback system, and telemetry logging.
 
 All numerical operations use **numpy only** (no scipy, no sklearn).
 
 ## Commands
 
 ```bash
-# Run the full test suite (47 tests)
+# Run the full test suite (98 tests)
 pytest tests/ -v
 
-# Run algorithm tests only
+# Run original algorithm tests only
 pytest tests/test_algorithms.py -v
+
+# Run DE + CMA-ES tests only
+pytest tests/test_new_algorithms.py -v
 
 # Run landscape analysis tests only
 pytest tests/test_landscape.py -v
+
+# Run benchmark tests only
+pytest tests/test_benchmarks.py -v
 
 # Run a single test
 pytest tests/test_algorithms.py::TestHillClimber::test_converges_on_sphere -v
@@ -29,13 +35,16 @@ pytest tests/test_algorithms.py::TestHillClimber::test_converges_on_sphere -v
 ### Dependency Graph
 
 ```
-base.py                 ← Abstract base classes (no dependencies except numpy)
+base.py                 ← Abstract base classes + Callback (no dependencies except numpy)
     ↓
 mutation.py             ← 3 mutation operators (imports base)
+crossover.py            ← 2 crossover operators: SBX, Uniform (imports base)
 selection.py            ← 3 selection strategies (imports base)
 population.py           ← Population management (numpy only)
 landscape.py            ← Landscape analysis tools (imports base)
 telemetry.py            ← JSON-lines logging (stdlib only)
+benchmarks.py           ← 5 test functions: Sphere, Rosenbrock, Rastrigin, Ackley, ZDT1
+callbacks.py            ← 4 callbacks: ConvergenceChecker, ProgressPrinter, TelemetryCallback, HistoryRecorder
     ↓
 algorithms/
     hill_climber.py     ← HillClimber (imports base, mutation)
@@ -44,6 +53,8 @@ algorithms/
     cliff_mapper.py     ← CliffMapper (imports base, mutation)
     novelty_seeker.py   ← NoveltySeeker (imports base, mutation)
     ensemble.py         ← EnsembleExplorer (imports base, mutation)
+    de.py               ← DifferentialEvolution (imports base only, native ask-tell)
+    cma_es.py           ← CMAES (imports base only, native ask-tell)
 ```
 
 ### Protocol-Based Design
@@ -55,8 +66,12 @@ All components implement abstract base classes from `base.py`:
 | `FitnessFunction` | `evaluate(params) -> dict` | Must return dict with `'fitness'` key |
 | `FitnessFunction` | `param_spec() -> dict` | Returns `{name: (low, high)}` bounds |
 | `MutationOperator` | `mutate(params, param_spec, rng) -> dict` | Returns mutated params, clamped to bounds |
+| `CrossoverOperator` | `crossover(p1, p2, spec, rng) -> (c1, c2)` | Returns two child param dicts |
 | `SelectionStrategy` | `select(population, n) -> list` | Returns n selected individuals |
 | `Algorithm` | `run(budget) -> list[dict]` | Returns evaluation history within budget |
+| `Algorithm` | `ask() -> list[dict]` | Returns candidates to evaluate (DE, CMA-ES) |
+| `Algorithm` | `tell(evaluations)` | Reports (params, result) tuples back |
+| `Callback` | `on_generation(algo, gen, best) -> bool|None` | Return False for early stopping |
 
 ### Individuals and History
 

@@ -4,7 +4,7 @@ Standalone evolutionary algorithms library for black-box optimization. Numpy-onl
 
 ## What's Inside
 
-**6 Algorithms**
+**8 Algorithms**
 
 | Algorithm | Strategy |
 |-----------|----------|
@@ -14,10 +14,20 @@ Standalone evolutionary algorithms library for black-box optimization. Numpy-onl
 | `CliffMapper` | Seeks high-sensitivity regions ("cliffs") in the landscape |
 | `NoveltySeeker` | k-NN novelty-driven search (ignores fitness entirely) |
 | `EnsembleExplorer` | Parallel hill climbers with convergence detection and teleportation |
+| `DifferentialEvolution` | DE/rand/1/bin with population-based vector differences |
+| `CMAES` | Covariance Matrix Adaptation — learns landscape geometry via covariance |
 
 **3 Mutation Operators** — Gaussian (isotropic, unit sphere direction), Cauchy (heavy-tailed jumps), Adaptive (1/5th success rule)
 
+**2 Crossover Operators** — SBX (simulated binary, continuous), Uniform (per-parameter swap)
+
 **3 Selection Strategies** — Tournament, Truncation, Epsilon-greedy
+
+**5 Benchmark Functions** — Sphere, Rosenbrock, Rastrigin, Ackley, ZDT1 (bi-objective)
+
+**Callback System** — ConvergenceChecker (early stopping), ProgressPrinter, TelemetryCallback, HistoryRecorder
+
+**Ask-Tell Interface** — DE and CMA-ES support external evaluation loops for distributed/async optimization
 
 **Landscape Analysis** — Cliffiness probing, roughness ratio, gradient estimation, sign flip rate, comprehensive `LandscapeAnalyzer`
 
@@ -65,7 +75,7 @@ print(f"Best: {best['fitness']:.4f} at {best['params']}")
 ## Tests
 
 ```bash
-pytest tests/ -v   # 47 tests, ~0.3s
+pytest tests/ -v   # 98 tests, ~0.6s
 ```
 
 ## Origin
@@ -83,7 +93,7 @@ Both projects needed the same core optimization machinery. Rather than duplicate
 Full Wolfram-style reference documentation in [`docs/`](docs/):
 
 - [`docs/guide.md`](docs/guide.md) — Main reference guide
-- Per-module pages for all [base classes](docs/base.md), [mutation operators](docs/mutation.md), [selection strategies](docs/selection.md), [population tools](docs/population.md), [landscape analysis](docs/landscape.md), [telemetry](docs/telemetry.md), and each of the [6 algorithms](docs/guide.md#algorithms)
+- Per-module pages for all [base classes](docs/base.md), [mutation operators](docs/mutation.md), [crossover operators](docs/crossover.md), [selection strategies](docs/selection.md), [population tools](docs/population.md), [landscape analysis](docs/landscape.md), [telemetry](docs/telemetry.md), [benchmarks](docs/benchmarks.md), [callbacks](docs/callbacks.md), and each of the [8 algorithms](docs/guide.md#algorithms)
 
 ## License
 
